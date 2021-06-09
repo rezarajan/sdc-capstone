@@ -16,7 +16,9 @@ RUN apt-get upgrade -y
 # end installing Dataspeed DBW
 
 # install python packages
-RUN apt-get install -y python-pip
+# RUN apt-get install -y python-pip
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+RUN python get-pip.py
 RUN pip install --upgrade pip
 COPY requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
