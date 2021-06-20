@@ -37,24 +37,24 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
+        self.waypoints = None # To store base waypoints
 
         rospy.spin()
 
     def pose_cb(self, msg):
         # TODO: Implement
-        pass
-
-    def waypoints_cb(self, waypoints):
-        # TODO: Implement
-        hedr = waypoints.header
-        wpts = waypoints.waypoints[:LOOKAHEAD_WPS]
+        hedr = self.waypoints.header
+        wpts = self.waypoints.waypoints[:LOOKAHEAD_WPS]
         lk_ahead = Lane()
         lk_ahead.header = hedr
         lk_ahead.waypoints= wpts
 
         self.final_waypoints_pub.publish(lk_ahead)
+        pass
 
-        # pass
+    def waypoints_cb(self, waypoints):
+        # TODO: Implement
+        self.waypoints = waypoints
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
