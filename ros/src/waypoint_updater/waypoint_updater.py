@@ -46,7 +46,15 @@ class WaypointUpdater(object):
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        pass
+        hedr = waypoints.header
+        wpts = waypoints.waypoints[:LOOKAHEAD_WPS]
+        lk_ahead = Lane()
+        lk_ahead.header = hedr
+        lk_ahead.waypoints= wpts
+
+        self.final_waypoints_pub.publish(lk_ahead)
+
+        # pass
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
