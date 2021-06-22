@@ -54,9 +54,20 @@ class DBWNode(object):
                                          BrakeCmd, queue_size=1)
 
         # TODO: Create `Controller` object
-        # self.controller = Controller(<Arguments you wish to provide>)
+        self.controller = Controller()
 
         # TODO: Subscribe to all the topics you need to
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_cb)
+        
+        # Variables
+        self.current_linear_velocity = None
+        self.current_angular_velocity = None
+        self.dbw_enabled = None
+        self.linear_velocity = None
+        self.angular_velocity = None
+        self.throttle = self.steering = self.brake = 0
 
         self.loop()
 
@@ -70,8 +81,9 @@ class DBWNode(object):
             #                                                     <current linear velocity>,
             #                                                     <dbw status>,
             #                                                     <any other argument you need>)
-            # if <dbw is enabled>:
-            #   self.publish(throttle, brake, steer)
+            throttle, brake, steering = self.controller.control(0,0,0,0,True)
+            if self.dbw_enabled:
+              self.publish(throttle, brake, steering)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
@@ -91,6 +103,17 @@ class DBWNode(object):
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
         self.brake_pub.publish(bcmd)
+
+    def velocity_cb(self, msg):
+        self.current_linear_velocity = msg.twist.linear
+        self.current_angular_velocity = msg.twist.angular
+
+    def twist_cb(self, msg):
+        self.linear_velocity = msg.twist.linear
+        self.angular_velocity = msg.twist.angular
+    
+    def dbw_cb(self, dbw_status):
+        self.dbw_enabled = dbw_status
 
 
 if __name__ == '__main__':
