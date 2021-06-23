@@ -54,7 +54,7 @@ class DBWNode(object):
                                          BrakeCmd, queue_size=1)
 
         # TODO: Create `Controller` object
-        self.controller = Controller(vehicle_mass, wheel_radius, decel_limit)
+        self.controller = Controller(vehicle_mass, wheel_radius, decel_limit, wheel_base, steer_ratio, 0.1, max_lat_accel, max_steer_angle)
 
         # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
@@ -75,18 +75,13 @@ class DBWNode(object):
         rate = rospy.Rate(50) # 50Hz
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
-            # You should only publish the control commands if dbw is enabled
-            # throttle, brake, steering = self.controller.control(<proposed linear velocity>,
-            #                                                     <proposed angular velocity>,
-            #                                                     <current linear velocity>,
-            #                                                     <dbw status>,
-            #                                                     <any other argument you need>)
             if not None in (self.linear_velocity, self.angular_velocity, self.current_linear_velocity, self.current_angular_velocity, self.dbw_enabled):
                 throttle, brake, steering = self.controller.control(self.linear_velocity,
                                                                     self.angular_velocity,
                                                                     self.current_linear_velocity,
                                                                     self.current_angular_velocity,
                                                                     self.dbw_enabled)
+            # You should only publish the control commands if dbw is enabled
             if self.dbw_enabled:
                 self.publish(throttle, brake, steering)
             rate.sleep()
