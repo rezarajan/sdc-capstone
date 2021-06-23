@@ -54,7 +54,7 @@ class DBWNode(object):
                                          BrakeCmd, queue_size=1)
 
         # TODO: Create `Controller` object
-        self.controller = Controller()
+        self.controller = Controller(vehicle_mass, wheel_radius, decel_limit)
 
         # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
@@ -81,13 +81,14 @@ class DBWNode(object):
             #                                                     <current linear velocity>,
             #                                                     <dbw status>,
             #                                                     <any other argument you need>)
-            throttle, brake, steering = self.controller.control(self.linear_velocity,
-                                                                self.angular_velocity,
-                                                                self.current_linear_velocity,
-                                                                self.current_angular_velocity,
-                                                                self.dbw_enabled)
+            if not None in (self.linear_velocity, self.angular_velocity, self.current_linear_velocity, self.current_angular_velocity, self.dbw_enabled):
+                throttle, brake, steering = self.controller.control(self.linear_velocity,
+                                                                    self.angular_velocity,
+                                                                    self.current_linear_velocity,
+                                                                    self.current_angular_velocity,
+                                                                    self.dbw_enabled)
             if self.dbw_enabled:
-              self.publish(throttle, brake, steering)
+                self.publish(throttle, brake, steering)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):

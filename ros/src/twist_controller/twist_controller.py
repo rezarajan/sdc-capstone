@@ -9,7 +9,7 @@ ONE_MPH = 0.44704
 
 
 class Controller(object):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, vehicle_weight, wheel_radius, decel_limit):
         # TODO: Implement
         self.last_time = None
 
@@ -26,6 +26,11 @@ class Controller(object):
         tau = 0.5 # cutoff freq. 1/(2*pi*tau)
         ts = 0.02 # 50Hz refresh rate
         self.lowpass = LowPassFilter(tau, ts)
+
+        ## Vehicle Params
+        self.vehicle_weight = vehicle_weight
+        self.wheel_radius = wheel_radius
+        self.decel_limit = decel_limit
 
     def control(self, linear_vel, angular_vel, current_lin_vel, current_ang_vel, dbw_enabled):
         '''
@@ -48,18 +53,30 @@ class Controller(object):
         # Filter velocity to remove noise
         lowpass_vel = self.lowpass.filt(current_lin_vel)
 
-        err = linear_vel - lowpass_vel
+        vel_err = linear_vel - lowpass_vel
         dt = rospy.get_time() 
         if self.last_time is None:
             self.last_time = dt
         else:
             dt -= self.last_time
 
-        throttle = self.throttle_controller.step(err, dt)
-        # rospy.logwarn('Err: {}'.format(err))
+        throttle = self.throttle_controller.step(vel_err, dt)
+        # rospy.logwarn('vel_err: {}'.format(vel_err))
         # rospy.logwarn('dt: {}'.format(dt))
         # rospy.logwarn('Throttle: {}'.format(throttle))
         # rospy.logwarn('Target/Current Velocity: {}/{}'.format(linear_vel, current_lin_vel))
 
+        # Braking Logic
+        brake = 0 # default no braking
+        # When vehicle is stopped, apply brakes to prevent rolling,
+        # or if above target velocity, brake to decelerate to target
+        if linear_vel == 0 and current_lin_vel < 0.1:
+            throttle = 0
+            brake = 700 # Nm
+        elif vel_err < 0:
+            throttle = 0
+            decel = max(vel_err, self.decel_limit)
+            brake = self.vehicle_weight*self.wheel_radius*abs(decel) # Torque
+
         # Return throttle, brake, steer
-        return throttle, 0., 0.
+        return throttle, brake, 0.
