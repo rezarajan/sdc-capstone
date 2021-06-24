@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import rospy
+import numpy as np
+from scipy.spatial import KDTree
 from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped, Pose
 from styx_msgs.msg import TrafficLightArray, TrafficLight
@@ -19,6 +21,8 @@ class TLDetector(object):
 
         self.pose = None
         self.waypoints = None
+        self.waypoints_2d = None
+        self.waypoints_tree = None
         self.camera_image = None
         self.lights = []
 
@@ -53,9 +57,14 @@ class TLDetector(object):
 
     def pose_cb(self, msg):
         self.pose = msg
+        _,_= self.process_traffic_lights() # TODO: this line for debugging only
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
+        if self.waypoints_2d is None:
+            # Create a KD Tree for faster coordinate lookup
+            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
+            self.waypoints_tree = KDTree(self.waypoints_2d)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -100,8 +109,11 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        #TODO implement
-        return 0
+        # TODO implement
+        x = pose[0]
+        y = pose[1]
+        closest_idx = self.waypoints_tree.query([x,y], 1)[1]
+        return closest_idx
 
     def get_light_state(self, light):
         """Determines the current color of the traffic light
@@ -136,9 +148,14 @@ class TLDetector(object):
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
+            x = self.pose.pose.position.x
+            y = self.pose.pose.position.y
+            car_position = self.get_closest_waypoint([x,y])
 
         #TODO find the closest visible traffic light (if one exists)
+        traffic_position = np.array([self.get_closest_waypoint(pos) for pos in stop_line_positions])
+        light_wp = traffic_position[np.argmax(traffic_position > car_position)]
+        # rospy.logwarn('[Waypoint] Car / Nearest Traffic Light: {}/{}'.format(car_position, light_wp))
 
         if light:
             state = self.get_light_state(light)
