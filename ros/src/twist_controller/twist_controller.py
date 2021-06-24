@@ -11,7 +11,7 @@ ONE_MPH = 0.44704
 class Controller(object):
     def __init__(self, vehicle_weight, wheel_radius, decel_limit, wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle):
         # TODO: Implement
-        self.last_time = None
+        self.last_time = rospy.get_time()
 
         # Config Variables
         ## PID
@@ -57,11 +57,7 @@ class Controller(object):
         lowpass_vel = self.lowpass.filt(current_lin_vel)
 
         vel_err = linear_vel - lowpass_vel
-        dt = rospy.get_time() 
-        if self.last_time is None:
-            self.last_time = dt
-        else:
-            dt -= self.last_time
+        dt = rospy.get_time() - self.last_time 
 
         throttle = self.throttle_controller.step(vel_err, dt)
         # rospy.logwarn('vel_err: {}'.format(vel_err))
@@ -78,7 +74,7 @@ class Controller(object):
             brake = 700 # Nm
         elif vel_err < 0:
             throttle = 0
-            decel = max(vel_err, self.decel_limit)
+            decel = max(vel_err, self.decel_limit) # note: decel = vel_err/1 second, which is the same the value of vel_err
             brake = self.vehicle_weight*self.wheel_radius*abs(decel) # Torque
 
         # Steering Logic
