@@ -24,6 +24,7 @@ class TLDetector(object):
         self.waypoints_2d = None
         self.waypoints_tree = None
         self.camera_image = None
+        self.has_image = False
         self.lights = []
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -125,14 +126,15 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        if(not self.has_image):
-            self.prev_light_loc = None
-            return False
+        return light.state
+        # if(not self.has_image):
+        #     self.prev_light_loc = None
+        #     return False
 
-        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        # cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
-        #Get classification
-        return self.light_classifier.get_classification(cv_image)
+        # #Get classification
+        # return self.light_classifier.get_classification(cv_image)
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -150,17 +152,20 @@ class TLDetector(object):
         if(self.pose):
             x = self.pose.pose.position.x
             y = self.pose.pose.position.y
-            car_position = self.get_closest_waypoint([x,y])
+            car_position_index = self.get_closest_waypoint([x,y])
 
         #TODO find the closest visible traffic light (if one exists)
-        traffic_position = np.array([self.get_closest_waypoint(pos) for pos in stop_line_positions])
-        light_wp = traffic_position[np.argmax(traffic_position > car_position)]
+        traffic_position_index = np.array([self.get_closest_waypoint(pos) for pos in stop_line_positions])
+        # light_wp = traffic_position[np.argmax(traffic_position > car_position)]
+        light_wp_index = np.argmax(traffic_position_index > car_position_index)
         # rospy.logwarn('[Waypoint] Car / Nearest Traffic Light: {}/{}'.format(car_position, light_wp))
+        light = self.lights[light_wp_index]
 
         if light:
             state = self.get_light_state(light)
-            return light_wp, state
-        self.waypoints = None
+            rospy.logwarn('Traffic Light State: {}'.format(state))
+            return light_wp_index, state
+        
         return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
