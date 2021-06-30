@@ -58,7 +58,21 @@ class TLDetector(object):
 
     def pose_cb(self, msg):
         self.pose = msg
-        _,_= self.process_traffic_lights() # TODO: this line for debugging only
+
+        # TODO: below for debugging only
+        light_wp,state= self.process_traffic_lights()
+
+        if self.state != state:
+            self.state_count = 0
+            self.state = state
+        elif self.state_count >= STATE_COUNT_THRESHOLD:
+            self.last_state = self.state
+            light_wp = light_wp if state == TrafficLight.RED else -1
+            self.last_wp = light_wp
+            self.upcoming_red_light_pub.publish(Int32(light_wp))
+        else:
+            self.upcoming_red_light_pub.publish(Int32(self.last_wp))
+        self.state_count += 1
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
@@ -158,13 +172,14 @@ class TLDetector(object):
         traffic_position_index = np.array([self.get_closest_waypoint(pos) for pos in stop_line_positions])
         # light_wp = traffic_position[np.argmax(traffic_position > car_position)]
         light_wp_index = np.argmax(traffic_position_index > car_position_index)
+        light_wp = traffic_position_index[light_wp_index]
         # rospy.logwarn('[Waypoint] Car / Nearest Traffic Light: {}/{}'.format(car_position, light_wp))
         light = self.lights[light_wp_index]
 
         if light:
             state = self.get_light_state(light)
-            rospy.logwarn('Traffic Light State: {}'.format(state))
-            return light_wp_index, state
+            # rospy.logwarn('Traffic Light State: {}'.format(state))
+            return light_wp, state
         
         return -1, TrafficLight.UNKNOWN
 
