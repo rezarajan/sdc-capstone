@@ -59,7 +59,7 @@ class TLDetector(object):
     def pose_cb(self, msg):
         self.pose = msg
 
-        # TODO: below for debugging only
+        # Below for debugging only
         light_wp,state= self.process_traffic_lights()
 
         if self.state != state:
@@ -124,7 +124,6 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        # TODO implement
         x = pose[0]
         y = pose[1]
         closest_idx = self.waypoints_tree.query([x,y], 1)[1]
@@ -168,13 +167,13 @@ class TLDetector(object):
             y = self.pose.pose.position.y
             car_position_index = self.get_closest_waypoint([x,y])
 
-        #TODO find the closest visible traffic light (if one exists)
+        # Find the closest visible traffic light (if one exists)
         traffic_position_index = np.array([self.get_closest_waypoint(pos) for pos in stop_line_positions])
-        # light_wp = traffic_position[np.argmax(traffic_position > car_position)]
         light_wp_index = np.argmax(traffic_position_index > car_position_index)
         light_wp = traffic_position_index[light_wp_index]
-        # rospy.logwarn('[Waypoint] Car / Nearest Traffic Light: {}/{}'.format(car_position, light_wp))
-        light = self.lights[light_wp_index]
+        # Allow self.lights to initialize first
+        if(light_wp_index < len(self.lights)):
+            light = self.lights[light_wp_index]
 
         if light:
             state = self.get_light_state(light)
