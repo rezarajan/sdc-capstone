@@ -59,20 +59,20 @@ class TLDetector(object):
     def pose_cb(self, msg):
         self.pose = msg
 
-        # Below for debugging only
-        light_wp,state= self.process_traffic_lights()
+        # Below for debugging only, e.g. if not using camera
+        # light_wp,state= self.process_traffic_lights()
 
-        if self.state != state:
-            self.state_count = 0
-            self.state = state
-        elif self.state_count >= STATE_COUNT_THRESHOLD:
-            self.last_state = self.state
-            light_wp = light_wp if state == TrafficLight.RED else -1
-            self.last_wp = light_wp
-            self.upcoming_red_light_pub.publish(Int32(light_wp))
-        else:
-            self.upcoming_red_light_pub.publish(Int32(self.last_wp))
-        self.state_count += 1
+        # if self.state != state:
+        #     self.state_count = 0
+        #     self.state = state
+        # elif self.state_count >= STATE_COUNT_THRESHOLD:
+        #     self.last_state = self.state
+        #     light_wp = light_wp if state == TrafficLight.RED else -1
+        #     self.last_wp = light_wp
+        #     self.upcoming_red_light_pub.publish(Int32(light_wp))
+        # else:
+        #     self.upcoming_red_light_pub.publish(Int32(self.last_wp))
+        # self.state_count += 1
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
@@ -139,14 +139,16 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        return light.state
         # if(not self.has_image):
         #     self.prev_light_loc = None
         #     return False
 
-        # cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        if(self.has_image):
+            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
-        # #Get classification
+            #Get classification
+            self.light_classifier.get_classification(cv_image)
+        return light.state
         # return self.light_classifier.get_classification(cv_image)
 
     def process_traffic_lights(self):
