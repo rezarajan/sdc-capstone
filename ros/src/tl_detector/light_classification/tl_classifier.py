@@ -10,9 +10,9 @@ class TLClassifier(object):
     def __init__(self):
         #TODO load classifier
         # Load saved model and build the detection function
-        self.model = tf.saved_model.load('../models/ssd-fpn/saved_model')
+        self.model = tf.saved_model.load('../models/ssd-mobilenet-v2-sim/saved_model')
         self.detect_fn = self.model.signatures['serving_default']
-        self.label_map = {1: 'go', 2: 'stop', 3: 'warning', 4: 'warningLeft', 5: 'stopLeft'}
+        self.label_map = {1: 'green', 2: 'red', 3: 'yellow', 4: 'off'}
         rospy.logwarn('Traffic Light Detection Model Loaded')
 
     def run_detection(self, image):
@@ -57,11 +57,25 @@ class TLClassifier(object):
         """
         #TODO implement light color prediction
         detections = self.run_detection(image)
-        boxes, scores, classes = self.filter_boxes(0.0, detections)
-        for s, c in zip(scores, classes):
-            rospy.logwarn('Detected: {} with Score: {}'.format(self.label_map[c], s))
-            if(c == 2):
-                rospy.logwarn('Red Light Detected')
+        boxes, scores, classes = self.filter_boxes(0.05, detections)
+        # Scores are ordered highest -> lowest
+        if len(classes) > 0:
+            if self.label_map[classes[0]] == 'red':
+                # rospy.logwarn('Red Light Detected: {}'.format(scores[0]))
                 return TrafficLight.RED
+        # if len(scores) > 0:
+        #     rospy.logwarn('Resuming: {}'.format(scores[0]))
+        # else:
+        #     rospy.logwarn('Resuming')
+        # for s, c in zip(scores, classes):
+            # rospy.logwarn('Detected: {} with Score: {}'.format(self.label_map[c], s))
+            # if self.label_map[c] == 'red':
+                # rospy.logwarn('Red Light Detected: {}'.format(s))
+                # return TrafficLight.RED
+        # rospy.logwarn('---------------------------------------------------')
+
+            # if(c == 1):
+            #     rospy.logwarn('Red Light Detected')
+            #     return TrafficLight.RED
         
         return TrafficLight.UNKNOWN
