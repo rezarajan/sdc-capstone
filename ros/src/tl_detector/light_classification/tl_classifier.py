@@ -57,11 +57,12 @@ class TLClassifier(object):
         """
         # Light color prediction
         detections = self.run_detection(image)
-        boxes, scores, classes = self.filter_boxes(0.7, detections)
+        boxes, scores, classes = self.filter_boxes(0.6, detections)
         # Scores are ordered highest -> lowest
         if len(classes) > 0:
             if self.label_map[classes[0]] == 'red':
+                rospy.logwarn('Red Light: {}'.format(scores[0]))
                 return TrafficLight.RED
-        
+        # rospy.logwarn('Proceeding')
         
         return TrafficLight.UNKNOWN

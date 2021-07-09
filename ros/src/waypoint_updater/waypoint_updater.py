@@ -24,7 +24,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -100,8 +100,13 @@ class WaypointUpdater(object):
             hedr = self.base_waypoints.header
             farthest_idx = closest_idx + LOOKAHEAD_WPS
             wpts = self.base_waypoints.waypoints[closest_idx:farthest_idx]
+            check_idx = farthest_idx
+            if(farthest_idx > len(self.base_waypoints.waypoints)):
+                # Create cyclical list
+                check_idx = farthest_idx%len(self.base_waypoints.waypoints)
+                wpts += self.base_waypoints.waypoints[:check_idx]
             # Check that light is red and stop line waypoint is within the lookahead range
-            if(self.stop_line_wp is not None and self.stop_line_wp != -1 and self.stop_line_wp <= farthest_idx):
+            if(self.stop_line_wp is not None and self.stop_line_wp != -1 and self.stop_line_wp <= check_idx):
                 # Decelerate on red light
                 wpts = self.decelerate(wpts, closest_idx)
 
@@ -116,6 +121,11 @@ class WaypointUpdater(object):
     def waypoints_cb(self, waypoints):
         if self.base_waypoints is None:
             self.base_waypoints = waypoints
+            # Modify all base waypoint velocities so the vehicle moves in a loop (does not stop at last waypoint)
+            # see rubric requirements "Successful Navigation"
+            for i in range(len(self.base_waypoints.waypoints)):
+                self.base_waypoints.waypoints[i] = self.set_waypoint_velocity(self.base_waypoints.waypoints[i], self.max_velocity)
+
             if self.waypoints_2d is None:
                 # Create a KD Tree for faster coordinate lookup
                 self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
@@ -155,7 +165,7 @@ class WaypointUpdater(object):
             Modified list of waypoints with stopping constraints
         """
         new_waypoints = []
-        stop_idx = max(self.stop_line_wp - closest_idx - 2, 0) # -2 to ensure the front of the vehicle stops at the line
+        stop_idx = max(self.stop_line_wp - closest_idx - 3, 0) # -3 to ensure the front of the vehicle stops at the line
         for i, wp in enumerate(waypoints):
             p = Waypoint() # Create a new instance of the waypoint
             p.pose = wp.pose # equivalent to the initial waypoint
