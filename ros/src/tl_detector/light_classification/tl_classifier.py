@@ -55,27 +55,13 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        #TODO implement light color prediction
+        # Light color prediction
         detections = self.run_detection(image)
-        boxes, scores, classes = self.filter_boxes(0.05, detections)
+        boxes, scores, classes = self.filter_boxes(0.7, detections)
         # Scores are ordered highest -> lowest
         if len(classes) > 0:
             if self.label_map[classes[0]] == 'red':
-                # rospy.logwarn('Red Light Detected: {}'.format(scores[0]))
                 return TrafficLight.RED
-        # if len(scores) > 0:
-        #     rospy.logwarn('Resuming: {}'.format(scores[0]))
-        # else:
-        #     rospy.logwarn('Resuming')
-        # for s, c in zip(scores, classes):
-            # rospy.logwarn('Detected: {} with Score: {}'.format(self.label_map[c], s))
-            # if self.label_map[c] == 'red':
-                # rospy.logwarn('Red Light Detected: {}'.format(s))
-                # return TrafficLight.RED
-        # rospy.logwarn('---------------------------------------------------')
-
-            # if(c == 1):
-            #     rospy.logwarn('Red Light Detected')
-            #     return TrafficLight.RED
+        
         
         return TrafficLight.UNKNOWN
