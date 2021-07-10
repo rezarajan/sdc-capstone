@@ -101,12 +101,13 @@ class WaypointUpdater(object):
             farthest_idx = closest_idx + LOOKAHEAD_WPS
             wpts = self.base_waypoints.waypoints[closest_idx:farthest_idx]
             check_idx = farthest_idx
-            if(farthest_idx > len(self.base_waypoints.waypoints)):
+            if(farthest_idx >= len(self.base_waypoints.waypoints)):
                 # Create cyclical list
                 check_idx = farthest_idx%len(self.base_waypoints.waypoints)
                 wpts += self.base_waypoints.waypoints[:check_idx]
             # Check that light is red and stop line waypoint is within the lookahead range
-            if(self.stop_line_wp is not None and self.stop_line_wp != -1 and self.stop_line_wp <= check_idx):
+            if(self.stop_line_wp is not None and self.stop_line_wp != -1 \
+                and check_idx-LOOKAHEAD_WPS <= self.stop_line_wp <= check_idx):
                 # Decelerate on red light
                 wpts = self.decelerate(wpts, closest_idx)
 
