@@ -48,8 +48,13 @@ class TLDetector(object):
         self.bridge = CvBridge()
         self.listener = tf.TransformListener()
 
-        self.constrained_mode = rospy.get_param('/constrained_mode', False) # For working in the low-power online workstation VM sim
-        if not self.constrained_mode:
+        # For working in the low-power online workstation VM sim
+        self.constrained_mode = rospy.get_param('/constrained_mode', False)
+        rospy.logwarn('Constrained Mode: {}'.format(self.constrained_mode))
+        if self.constrained_mode:
+            rospy.logwarn('Image Classification WILL NOT be performed')
+        else:
+            rospy.logwarn('Image Classification WILL be performed\nLoading Model...')
             self.light_classifier = TLClassifier()
 
         self.state = TrafficLight.UNKNOWN

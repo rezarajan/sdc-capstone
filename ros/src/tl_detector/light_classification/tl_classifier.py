@@ -4,8 +4,6 @@ import tensorflow as tf
 import numpy as np
 import rospy
 
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
 class TLClassifier(object):
     def __init__(self):
         #TODO load classifier
