@@ -66,9 +66,31 @@ The vehicle is able to successfully navigate the track more than once, adhereing
 
 ## A Note on Image Detection and Classification
 
-The model......#TODO
+A major part of this project, and a key aspect of enabling its use in real-world environments, is to build and implement a tool which can detect and classify objects in real-time. Naturally, any driver must be able to understand the environment they are driving in - this may include obstacles such as pedestrians, traffic lights, lane segmentation and warning signs. While there are many ways to accomplish some of these tasks, a more modern, effective and robust way is to utilize machine learning models.
+
+For this project the only task being tackled regarding environment analysis is to observe for traffic lights so that the vehicle may know when to stop, or proceed. Furthermore, it is imperative that the analysis be performed in real-time such that the vehicle may react to any sudden changes. Therefore, a Single-Shot Detection (SSD) MobileNet model is used to detect and classify traffic lights as either 'Green', 'Yellow', 'Red' or 'Off', in real-time.
+
+### *Training*
+
+Both models are trained on a set of real-world images of traffic lights by Autti. The actual dataset comes from Udacity, however, and is found here as [Dataset 2](https://github.com/udacity/self-driving-car/tree/master/annotations).
+
+Due to a shortcoming of SSD MobileNet mentioned [below](#performance), the SSD MobileNet model is also trained on traffic light data gathered from the simulator. A well-documented guide on how this is performed can be found [here](https://github.com/alex-lechner/Traffic-Light-Classification). Furthermore, linked is a guide on the actual training process using [TensorFlow's Object-Detection API](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/training.html). 
+
+### *Performance*
+
+On the note of real-time performance, the MobileNet variant of the model is chosen as it significantly reduces the number of parameters in the network, making it faster for training and inference. A drawback of this, however, is that these models tend to offer less accuracy and precision than full models, but in some cases, depending on the computational capability of the system it is run on, the latency gains in inference are well worth the tradeoff.
+
+Two models have been tested for inference latency on a batch of sample images: the SSD MobileNet and Faster R-CNN models. Their performances are shown below:
+
 ![image1]
+
+The SSD MobileNet model offers an average latency of 41ms, with a low of 40ms and high of 42ms.
+
 ![image2]
+
+The Faster R-CNN model offers an average latency of 485ms, with a low of ~460ms and high of ~500ms.
+
+Clearly the SSD MobileNet model (at least on the hardware it has been tested on) is more suitable for real-time applications than Faster R-CNN. Testing in the simulator proved this to be the case as well, however the tradeoff in accuracy and precision may not be suitable for production environments. A very important observation is that from testing it has become clear that the MobileNet model is not able to generalize as well as other models - a model trained on real-world images of traffic lights will not perform with any reasonable amount of accuracy for use in the simulator, and vice-versa. Therefore, if the MobileNet model is used then two models must be trained - one using simulator images, and one using real-world images. The tradeoff in the time it takes to train these models alone may warrant the use of another model.
 
 ---
 
