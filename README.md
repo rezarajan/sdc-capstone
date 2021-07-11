@@ -1,88 +1,67 @@
-This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+# Usage Guide
 
-Please use **one** of the two installation options, either native **or** docker installation.
+The project may be run natively, or through a Docker container. The recommended way to run the code is through Docker, to ensure consistency. However, in some instances running Docker may not be possible, for instance in some virtual environments. Please refer to the [installation instructions](./Installation.md) for guides on how to set up the system.
 
-### Native Installation
+For simplicity, the **Docker usage guide** is shown below for **usage with the simulator only**. To get set up, the following steps are required:
 
-* Be sure that your workstation is running Ubuntu 16.04 Xenial Xerus or Ubuntu 14.04 Trusty Tahir. [Ubuntu downloads can be found here](https://www.ubuntu.com/download/desktop).
-* If using a Virtual Machine to install Ubuntu, use the following configuration as minimum:
-  * 2 CPU
-  * 2 GB system memory
-  * 25 GB of free hard drive space
+### Clone the repository
 
-  The Udacity provided virtual machine has ROS and Dataspeed DBW already installed, so you can skip the next two steps if you are using this.
+Run the following command to clone the repository:
+```sh 
+git clone https://github.com/rezarajan/sdc-capstone.git
+cd sdc-capstone
+```
+### Running the Code
 
-* Follow these instructions to install ROS
-  * [ROS Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) if you have Ubuntu 16.04.
-  * [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu) if you have Ubuntu 14.04.
-* Download the [Udacity Simulator](https://github.com/udacity/CarND-Capstone/releases).
+The script to execute code depends on the system type. On constrained systems a more lightweight version of the code will run, which does not perform image classification for traffic lights. At the point of writing the online workspace is not performant enough to run inference, and bogs the system to the point where it is unusable. Otherwise, image classification will be performed.
 
-### Docker Installation
-[Install Docker](https://docs.docker.com/engine/installation/)
+---
 
-Build the docker container
-```bash
+**Running Locally**
+
+1. Build the Docker image:
+```sh
 docker build . -t capstone
 ```
-
-Run the docker file
-```bash
-docker run -p 4567:4567 -v "$(pwd):/capstone" -v "/tmp/log:/root/.ros/" --rm -it capstone
+2. Run the Docker container
+```sh
+./run_container.sh
 ```
+*Note: The terminal should now be displaying the Docker container's environment. Continue the steps in the container's terminal.*
 
-### Port Forwarding
-To set up port forwarding, please refer to the "uWebSocketIO Starter Guide" found in the classroom (see Extended Kalman Filter Project lesson).
-
-### Usage
-
-1. Clone the project repository
-```bash
-git clone https://github.com/udacity/CarND-Capstone.git
-```
-
-2. Install python dependencies
-```bash
-cd CarND-Capstone
-pip install -r requirements.txt
-```
-3. Make and run styx
-```bash
-cd ros
+3. From inside the Docker container, build the project packages
+```sh
 catkin_make
-source devel/setup.sh
+```
+4. Source the environment
+```sh
+source devel/setup.bash
+```
+5. Start ROS
+```sh
 roslaunch launch/styx.launch
 ```
-4. Run the simulator
 
-### Real world testing
-1. Download [training bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/traffic_light_bag_file.zip) that was recorded on the Udacity self-driving car.
-2. Unzip the file
-```bash
-unzip traffic_light_bag_file.zip
+---
+
+**Running on the constrained systems:**
+
+1. Build the project packages
+```sh
+cd ros
+catkin_make
 ```
-3. Play the bag file
-```bash
-rosbag play -l traffic_light_bag_file/traffic_light_training.bag
+2. Source the environment
+```sh
+source devel/setup.bash
 ```
-4. Launch your project in site mode
-```bash
-cd CarND-Capstone/ros
-roslaunch launch/site.launch
+3. Start ROS
+```sh
+# This launch file is different, and ensures computationally intensive tasks are suppressed
+roslaunch launch/styx-ws.launch
 ```
-5. Confirm that traffic light detection works on real life images
 
-### Other library/driver information
-Outside of `requirements.txt`, here is information on other driver/library versions used in the simulator and Carla:
+### Launch the Simulator
+Once roslaunch has finished, open the simulator, and **disable manual mode** and **enable camera**. The car should start navigating around the track in a loop. 
 
-Specific to these libraries, the simulator grader and Carla use the following:
-
-|        | Simulator | Carla  |
-| :-----------: |:-------------:| :-----:|
-| Nvidia driver | 384.130 | 384.130 |
-| CUDA | 8.0.61 | 8.0.61 |
-| cuDNN | 6.0.21 | 6.0.21 |
-| TensorRT | N/A | N/A |
-| OpenCV | 3.2.0-dev | 2.4.8 |
-| OpenMP | N/A | N/A |
-
-We are working on a fix to line up the OpenCV versions between the two.
+*Note: when running the code locally (not in constrained mode) please wait for TensorFlow to load the inference model before running the simulator. A prompt will appear stating 'Traffic Light Detection Model Loaded', after which it is safe to run the simulator.*
