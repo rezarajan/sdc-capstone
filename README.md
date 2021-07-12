@@ -62,6 +62,7 @@ roslaunch launch/styx-ws.launch
 ```
 
 ### Launch the Simulator
-Once roslaunch has finished, open the simulator, and **disable manual mode**. If working on a local system, also **enable camera** (do this first). The car should start navigating around the track in a loop. 
+
+Once roslaunch has finished, open the simulator. Once open, if working on a **local system**, first **enable camera** and then **disable manual mode**. If working on a **constrained system** in constrained mode, **only disable manual mode, do NOT enable camera**. The car should start navigating around the track in a loop. 
 
 *Note: when running the code locally (not in constrained mode) please wait for TensorFlow to load the inference model before running the simulator. A prompt will appear stating 'Traffic Light Detection Model Loaded', after which it is safe to run the simulator.*
