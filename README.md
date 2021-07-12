@@ -44,7 +44,7 @@ roslaunch launch/styx.launch
 
 ---
 
-**Running on the constrained systems:**
+**Running on Constrained Systems:**
 
 1. Build the project packages
 ```sh
